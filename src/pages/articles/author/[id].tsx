@@ -1,24 +1,26 @@
 // src/pages/articles.tsx
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
-import api from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
-import { Article } from '@/types';
-import { useRouter } from 'next/router';
-import Navbar from '@/components/Navbar';
+import { Article, SortDirection, SortField } from '@/types';
+import router, { useRouter } from 'next/router';
 import Link from 'next/link';
-import { fetchAuthorArticles, searchAuthorArticles, toggleFavorite } from '@/services/articleService';
+import { deleteArticle, fetchAuthorArticles, searchAuthorArticles, toggleFavorite } from '@/services/articleService';
 import ArticleCard from '@/components/ArticleCard';
+import Layout from '@/components/Layout';
+import { fetchAuthorById } from '@/services/authorService';
 
 export default function Articles() {
-  const [articles, setArticles] = useState([]);
+  const [articles, setArticles] = useState<Article[]>([]);
   const { isAuthenticated, logout, loading } = useAuth();
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(0); // 0-based index
   const [totalPages, setTotalPages] = useState(1);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const pageSize = 6; // Increased for grid view
-  const router = useRouter();
-  const { id } = router.query;
+  const [sortField, setSortField] = useState<SortField>('id');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [name, setName] = useState<string | null>(null);
+  const pageSize = 6; // Increased for grid view  const router = useRouter();
+  const id = Number(useRouter().query['id']);
 
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -26,17 +28,24 @@ export default function Articles() {
   };
 
   useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.push('/login');
+    }
     if (!loading && isAuthenticated) {
       const fetchData = search === '' ? fetchAuthorArticles.bind(null, Number(id)) : searchAuthorArticles.bind(null, Number(id),search);
       
-      fetchData(currentPage, pageSize, 'id', 'desc')
+      fetchData(currentPage, pageSize, sortField, sortDirection)
         .then(res => {
           setArticles(res.content);
           setTotalPages(res.totalPages);
         })
         .catch(() => console.log('Error fetching articles'));
     }
-  }, [isAuthenticated, loading, currentPage, search]);
+
+    if (id) {
+      fetchAuthorById(id).then(res => setName(res.name));
+    }
+  }, [isAuthenticated, loading, currentPage, search, id, sortField, sortDirection]);
   
   if (loading || !isAuthenticated) return null;
 
@@ -51,17 +60,63 @@ export default function Articles() {
       .catch((e) => console.log('error:', e));
   };
 
+  const handleSort = (field: SortField) => {
+    // If clicking the same field, toggle direction
+    if (field === sortField) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // If clicking a new field, set it as the sort field and default to ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+    // Reset to first page when sorting changes
+    setCurrentPage(0);
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (field !== sortField) {
+      return <i className="bi bi-arrow-down-up text-muted ms-1"></i>;
+    }
+    return sortDirection === 'asc' 
+      ? <i className="bi bi-caret-up-fill ms-1"></i> 
+      : <i className="bi bi-caret-down-fill ms-1"></i>;
+  };
+
   const handleArticleClick = (articleId: number | undefined) => {
     router.push(`/articles/${articleId}`);
   };
 
+  const handleDelete = (articleId: number | undefined, e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent card click event
+      deleteArticle(articleId).then(() => {
+        setArticles(articles.filter(a => a.id !== articleId));
+      });
+      
+    };
+  
+    const handleEdit = (articleId: number | undefined, e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent card click event
+      router.push(`/articles/edit/${articleId}`);
+    };
+  
+    const handleFavoriteToggle = (articleId: number | undefined, e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent card click event
+      toggleFavorite(articleId)
+      .then(() =>setArticles(articles.map(a => {
+          if (a.id === articleId) {
+            return { ...a, isFavorite: !a.isFavorite };
+          }
+          return a;
+        }))
+      );
+    };
+
   return (
-    <>
-      <Navbar />
+    <Layout>
       <div className="container mt-4">
         <div className="d-flex flex-wrap justify-content-between align-items-center mb-4">
           <div className="me-auto">
-            <h2 className="fw-bold mb-0">Articles</h2>
+            <h2 className="fw-bold mb-0">{name ? name : 'Author'}'s Articles</h2>
             <p className="text-muted">Showing {articles.length} of {totalPages * pageSize} articles</p>
           </div>
           
@@ -105,6 +160,21 @@ export default function Articles() {
           </div>
         </div>
 
+        {/* Sort Options Dropdown */}
+        <div className="mb-3">
+          <div className="dropdown d-inline-block">
+            <button className="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              Sort by: {sortField.charAt(0).toUpperCase() + sortField.slice(1)} ({sortDirection === 'asc' ? 'A-Z' : 'Z-A'})
+            </button>
+            <ul className="dropdown-menu" aria-labelledby="sortDropdown">
+              <li><button className="dropdown-item" onClick={() => handleSort('id')}>ID {sortField === 'id' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</button></li>
+              <li><button className="dropdown-item" onClick={() => handleSort('title')}>Title {sortField === 'title' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</button></li>
+              <li><button className="dropdown-item" onClick={() => handleSort('content')}>Content {sortField === 'content' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</button></li>
+              <li><button className="dropdown-item" onClick={() => handleSort('category')}>Category {sortField === 'category' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</button></li>
+            </ul>
+          </div>
+        </div>
+
         {/* Grid View */}
         {viewMode === 'grid' && (
           <div className="row g-4 mb-4">
@@ -112,36 +182,45 @@ export default function Articles() {
               <div className="col-12 col-md-6 col-lg-4" key={article.id}>
                 <ArticleCard 
                   article={article} 
-                  onClick={() => handleArticleClick(article.id)} 
+                  onClick={() => handleArticleClick(article.id)}
+                  onDelete={(e) => handleDelete(article.id, e)}
+                  onEdit={(e) => handleEdit(article.id, e)}
+                  onFavoriteToggle={(e) => handleFavoriteToggle(article.id, e)}
                 />
               </div>
             ))}
           </div>
         )}
 
-        {/* List View (Original Table) */}
+        {/* List View (Updated Table) */}
         {viewMode === 'list' && (
           <div className="table-responsive mb-4">
             <table className="table table-hover">
               <thead>
                 <tr style={{ backgroundColor: '#f8f9fa' }}>
-                  <th>#</th>
-                  <th>
+                  <th onClick={() => handleSort('id')} style={{ cursor: 'pointer' }}>
                     <span className="text-dark fw-bold">
-                      TITLE
-                      <i className="bi bi-caret-down-fill ms-1"></i>
+                      # {getSortIcon('id')}
                     </span>
                   </th>
-                  <th>
+                  <th onClick={() => handleSort('title')} style={{ cursor: 'pointer' }}>
                     <span className="text-dark fw-bold">
-                      CONTENT PREVIEW
-                      <i className="bi bi-caret-up-fill ms-1"></i>
+                      TITLE {getSortIcon('title')}
                     </span>
                   </th>
-                  <th>
+                  <th onClick={() => handleSort('content')} style={{ cursor: 'pointer' }}>
                     <span className="text-dark fw-bold">
-                      Author
-                      <i className="bi bi-caret-up-fill ms-1"></i>
+                      CONTENT PREVIEW {getSortIcon('content')}
+                    </span>
+                  </th>
+                  <th onClick={() => handleSort('author')} style={{ cursor: 'pointer' }}>
+                    <span className="text-dark fw-bold">
+                      AUTHOR {getSortIcon('author')}
+                    </span>
+                  </th>
+                  <th onClick={() => handleSort('category')} style={{ cursor: 'pointer' }}>
+                    <span className="text-dark fw-bold">
+                      CATEGORY {getSortIcon('category')}
                     </span>
                   </th>
                   <th colSpan={3} style={{ textAlign: 'center' }}>ACTIONS</th>
@@ -166,12 +245,18 @@ export default function Articles() {
                     </td>
                     <td>{article.author?.name || 'Unknown'}</td>
                     <td>
+                      {article.category ? (
+                        <span className="badge bg-secondary rounded-pill">
+                          {article.category}
+                        </span>
+                      ) : (
+                        <span className="text-muted">Uncategorized</span>
+                      )}
+                    </td>
+                    <td>
                       <button 
                         className="btn btn-outline-danger btn-sm" 
-                        onClick={() => {
-                          api.delete(`/article/${article.id}`);
-                          router.reload();
-                        }}
+                        onClick={(e) => handleDelete(article.id, e)}
                       >
                         <i className="bi bi-trash me-1"></i>Delete
                       </button>
@@ -179,7 +264,7 @@ export default function Articles() {
                     <td>
                       <button 
                         className="btn btn-outline-primary btn-sm" 
-                        onClick={() => router.push(`/articles/edit/${article.id}`)}
+                        onClick={(e) => handleEdit(article.id, e)}
                       >
                         <i className="bi bi-pencil me-1"></i>Edit
                       </button>
@@ -188,7 +273,7 @@ export default function Articles() {
                       <i 
                         className={`bi fs-3 ${article.isFavorite ? 'bi-star-fill text-warning' : 'bi-star'}`}
                         style={{ cursor: 'pointer' }}
-                        onClick={() => toggleFavorite(article.id).then(() => router.reload())}
+                        onClick={(e) => handleFavoriteToggle(article.id, e)}
                       ></i>
                     </td>
                   </tr>
@@ -248,6 +333,6 @@ export default function Articles() {
           </div>
         )}
       </div>
-    </>
+    </Layout>
   );
 }

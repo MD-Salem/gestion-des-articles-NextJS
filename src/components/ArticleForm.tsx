@@ -1,4 +1,5 @@
 import { Article, Author } from '@/types';
+import { ar } from 'date-fns/locale';
 import React, { useState } from 'react';
 
 interface ArticleFormProps {
@@ -10,17 +11,18 @@ interface ArticleFormProps {
 
 }
 
-const ArticleForm: React.FC<ArticleFormProps> = ({ article = {}, onSubmit, authors }) => {
+const ArticleForm: React.FC<ArticleFormProps> = ({ article , onSubmit, authors }) => {
   const [title, setTitle] = useState(article.title || '');
   const [content, setContent] = useState(article.content || '');
   const [loading, setLoading] = useState(false);
-  const [authorId, setAuthorId] = useState<number | null>(null);
+  const [authorId, setAuthorId] = useState<number | null>(article.author?.id || null);
+  const [category, setCategory] = useState(article.category || '')
 
 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({id: article.id, title, content, author: {id: authorId || 0}});
+    onSubmit({id: article.id, title, content, author: {id: authorId || 0}, category});
   };
 
   return (
@@ -66,7 +68,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article = {}, onSubmit, autho
           </div>
 
           
-          {/* <div className="mb-3">
+          <div className="mb-3">
             <label htmlFor="category" className="form-label fw-bold">
               <i className="bi bi-tag me-1"></i> Category
             </label>
@@ -77,14 +79,15 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article = {}, onSubmit, autho
               onChange={(e) => setCategory(e.target.value)}
             >
               <option value="">Select a category</option>
-              <option value="Technology">Technology</option>
+              <option value="Technology" >Technology</option>
               <option value="Science">Science</option>
               <option value="Health">Health</option>
               <option value="Business">Business</option>
               <option value="Entertainment">Entertainment</option>
+              <option value="Sports">Sports</option>
               <option value="Other">Other</option>
             </select>
-          </div> */}
+          </div>
           
           <div className="mb-4">
             <label htmlFor="content" className="form-label fw-bold">

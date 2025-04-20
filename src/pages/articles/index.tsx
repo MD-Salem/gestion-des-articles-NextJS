@@ -1,15 +1,11 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
-import api from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
-import { Article } from '@/types';
+import { Article, SortDirection, SortField } from '@/types';
 import { useRouter } from 'next/router';
-import Navbar from '@/components/Navbar';
 import Link from 'next/link';
-import { fetchArticles, searchArticles, toggleFavorite } from '@/services/articleService';
+import { deleteArticle, fetchArticles, searchArticles, toggleFavorite } from '@/services/articleService';
 import ArticleCard from '@/components/ArticleCard';
-
-type SortField = 'id' | 'title' | 'content' | 'author';
-type SortDirection = 'asc' | 'desc';
+import Layout from '@/components/Layout';
 
 export default function Articles() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -28,6 +24,9 @@ export default function Articles() {
   };
 
   useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.push('/login');
+    }
     if (!loading && isAuthenticated) {
       const fetchData = search === '' ? fetchArticles : searchArticles.bind(null, search);
       
@@ -81,9 +80,10 @@ export default function Articles() {
 
   const handleDelete = (articleId: number | undefined, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event
-    api.delete(`/article/${articleId}`).then(() => {
-      router.reload();
+    deleteArticle(articleId).then(() => {
+      setArticles(articles.filter(a => a.id !== articleId));
     });
+    
   };
 
   const handleEdit = (articleId: number | undefined, e: React.MouseEvent) => {
@@ -93,12 +93,18 @@ export default function Articles() {
 
   const handleFavoriteToggle = (articleId: number | undefined, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event
-    toggleFavorite(articleId).then(() => router.reload());
+    toggleFavorite(articleId)
+    .then(() =>setArticles(articles.map(a => {
+        if (a.id === articleId) {
+          return { ...a, isFavorite: !a.isFavorite };
+        }
+        return a;
+      }))
+    );
   };
 
   return (
-    <>
-      <Navbar />
+    <Layout>
       <div className="container mt-4">
         <div className="d-flex flex-wrap justify-content-between align-items-center mb-4">
           <div className="me-auto">
@@ -157,6 +163,7 @@ export default function Articles() {
               <li><button className="dropdown-item" onClick={() => handleSort('title')}>Title {sortField === 'title' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</button></li>
               <li><button className="dropdown-item" onClick={() => handleSort('content')}>Content {sortField === 'content' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</button></li>
               <li><button className="dropdown-item" onClick={() => handleSort('author')}>Author {sortField === 'author' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</button></li>
+              <li><button className="dropdown-item" onClick={() => handleSort('category')}>Category {sortField === 'category' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</button></li>
             </ul>
           </div>
         </div>
@@ -178,7 +185,7 @@ export default function Articles() {
           </div>
         )}
 
-        {/* List View (Original Table) */}
+        {/* List View (Updated Table) */}
         {viewMode === 'list' && (
           <div className="table-responsive mb-4">
             <table className="table table-hover">
@@ -204,6 +211,11 @@ export default function Articles() {
                       AUTHOR {getSortIcon('author')}
                     </span>
                   </th>
+                  <th onClick={() => handleSort('category')} style={{ cursor: 'pointer' }}>
+                    <span className="text-dark fw-bold">
+                      CATEGORY {getSortIcon('category')}
+                    </span>
+                  </th>
                   <th colSpan={3} style={{ textAlign: 'center' }}>ACTIONS</th>
                 </tr>
               </thead>
@@ -226,12 +238,18 @@ export default function Articles() {
                     </td>
                     <td>{article.author?.name || 'Unknown'}</td>
                     <td>
+                      {article.category ? (
+                        <span className="badge bg-secondary rounded-pill">
+                          {article.category}
+                        </span>
+                      ) : (
+                        <span className="text-muted">Uncategorized</span>
+                      )}
+                    </td>
+                    <td>
                       <button 
                         className="btn btn-outline-danger btn-sm" 
-                        onClick={() => {
-                          api.delete(`/article/${article.id}`);
-                          router.reload();
-                        }}
+                        onClick={(e) => handleDelete(article.id, e)}
                       >
                         <i className="bi bi-trash me-1"></i>Delete
                       </button>
@@ -239,7 +257,7 @@ export default function Articles() {
                     <td>
                       <button 
                         className="btn btn-outline-primary btn-sm" 
-                        onClick={() => router.push(`/articles/edit/${article.id}`)}
+                        onClick={(e) => handleEdit(article.id, e)}
                       >
                         <i className="bi bi-pencil me-1"></i>Edit
                       </button>
@@ -248,7 +266,7 @@ export default function Articles() {
                       <i 
                         className={`bi fs-3 ${article.isFavorite ? 'bi-star-fill text-warning' : 'bi-star'}`}
                         style={{ cursor: 'pointer' }}
-                        onClick={() => toggleFavorite(article.id).then(() => router.reload())}
+                        onClick={(e) => handleFavoriteToggle(article.id, e)}
                       ></i>
                     </td>
                   </tr>
@@ -308,6 +326,6 @@ export default function Articles() {
           </div>
         )}
       </div>
-    </>
+    </Layout>
   );
 }

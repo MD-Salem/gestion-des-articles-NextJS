@@ -10,7 +10,8 @@ export interface Article {
         numberOfArticles?: number
     }
     createdAt?: DateTime;
-    isFavorite?: string,
+    isFavorite?: boolean;
+    category?: string;
 }
 
 export interface Author {
@@ -27,3 +28,6 @@ export interface User {
     createdAt: string;
     updatedAt: string;
 }
+
+export type SortField = 'id' | 'title' | 'content' | 'author' | 'category';
+export type SortDirection = 'asc' | 'desc';

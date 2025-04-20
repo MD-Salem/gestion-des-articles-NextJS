@@ -78,3 +78,17 @@ export const searchAuthorArticles = async (id: number , title: string, currentPa
       });
     return response.data;
 }
+
+export const fetchFavoriteArticles = async (title: string, currentPage: number, pageSize: number, sort: string, dir: string) => {
+    const response = await  api.get('/article/favorites', {
+        params: {
+          title,
+          page: currentPage,
+          size: pageSize,
+          sortBy: sort,
+          direction: dir
+        }
+        });
+
+    return response.data
+}

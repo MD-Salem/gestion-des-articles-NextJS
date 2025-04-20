@@ -29,6 +29,15 @@ const AuthorCard: React.FC<AuthorCardProps> = ({ author }) => {
         <div className="card h-100 shadow-sm">
             <div className="card-body">
                 <h4 className="card-title fw-bold">{author.name}</h4>
+                <div className="bio-section" style={{ height: '100px', overflow: 'hidden' }}>
+                    <p className="card-text">
+                        {author.bio 
+                            ? author.bio.length > 150
+                                ? `${author.bio.substring(0, 150)}...`
+                                : author.bio
+                            : "No biography available"}
+                    </p>
+                </div>
                 <p className="card-text">
                     <span className="badge bg-primary">
                         <i className="bi bi-book me-1"></i>

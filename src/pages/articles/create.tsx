@@ -50,7 +50,7 @@ export default function CreateArticle() {
   const emptyArticle: Article = {
     title: '',
     content: '',
-    // category: ''
+    category: ''
   };
 
   return (

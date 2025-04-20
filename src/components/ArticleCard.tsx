@@ -31,8 +31,24 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       </div>
 
       <div className="card-body">
+        {/* Category badge - shown at the top of the card */}
+        
+        
         <h5 className="card-title fw-bold">{article.title}</h5>
-        <h6 className="card-subtitle mb-2 text-muted">{article.author?.name || 'Unknown'}</h6>
+        <div className="mb-2 mt-3 h6 d-flex justify-content-between align-items-center">
+          <span className="card-subtitle text-muted d-flex align-items-center">
+            <i className="bi bi-person me-1"></i>
+            {article.author?.name || 'Unknown'}
+          </span>
+          
+          {article.category && (
+            <span className="badge bg-secondary text-white d-flex align-items-center">
+              <i className="bi bi-tag me-1"></i>
+              {article.category}
+            </span>
+          )}
+        </div>
+
         <p className="card-text">
           {article.content.length > 150
             ? `${article.content.substring(0, 150)}...`

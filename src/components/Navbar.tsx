@@ -90,7 +90,7 @@ const Navbar: React.FC = () => {
               </ul>
             </li>
             <li className="nav-item">
-              <Link href="/contact" legacyBehavior>
+              <Link href="#" legacyBehavior>
                 <a className={`nav-link ${isActive('/contact')}`}>
                   <i className="bi bi-envelope me-1"></i> Contact
                 </a>
@@ -105,14 +105,14 @@ const Navbar: React.FC = () => {
                   </button>
                   <ul className="dropdown-menu dropdown-menu-end">
                     <li>
-                      <Link href="/profile" legacyBehavior>
+                      <Link href="#" legacyBehavior>
                         <a className="dropdown-item">
                           <i className="bi bi-person me-2"></i>Profile
                         </a>
                       </Link>
                     </li>
                     <li>
-                      <Link href="/dashboard" legacyBehavior>
+                      <Link href="#" legacyBehavior>
                         <a className="dropdown-item">
                           <i className="bi bi-speedometer2 me-2"></i>Dashboard
                         </a>
