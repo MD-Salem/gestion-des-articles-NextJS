@@ -1,40 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Système de Gestion des Articles
 
-## Getting Started
+Ce projet est une application [Next.js](https://nextjs.org) créée avec [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
 
-First, run the development server:
+## Pour Commencer
 
+### Prérequis
+- Node.js (version 14 ou supérieure)
+- npm, yarn, pnpm ou bun
+
+### Installation
+
+1. Clonez le dépôt :
+```bash
+git clone [https://github.com/MD-Salem/gestion-des-articles.git]
+cd gestion-des-articles
+```
+
+2. Installez les dépendances :
+```bash
+npm install
+# ou
+yarn install
+# ou
+pnpm install
+# ou
+bun install
+```
+
+3. Lancez le serveur de développement :
 ```bash
 npm run dev
-# or
+# ou
 yarn dev
-# or
+# ou
 pnpm dev
-# or
+# ou
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrez [http://localhost:3000](http://localhost:3000) avec votre navigateur pour voir le résultat.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+## Fonctionnalités
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+- Gestion des articles
+- Gestion des auteurs
+- Authentification utilisateur
+- Interface responsive
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+## Structure du Projet
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `pages/` - Contient toutes les routes de l'application
+- `components/` - Composants réutilisables
+- `services/` - Services pour les appels API
+- `styles/` - Fichiers CSS et styles
+- `types/` - Définitions des types TypeScript
 
-## Learn More
+## API Routes
 
-To learn more about Next.js, take a look at the following resources:
+Les routes API sont accessibles sur [http://localhost:3000/api/](http://localhost:3000/api/). 
+Le répertoire `pages/api` est mappé vers `/api/*`. Les fichiers dans ce répertoire sont traités comme des [routes API](https://nextjs.org/docs/pages/building-your-application/routing/api-routes).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+## Déploiement
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+La façon la plus simple de déployer cette application Next.js est d'utiliser la [Plateforme Vercel](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme).
 
-## Deploy on Vercel
+Pour plus de détails, consultez la [documentation de déploiement Next.js](https://nextjs.org/docs/pages/building-your-application/deploying).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## En Savoir Plus
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+Pour en apprendre davantage sur Next.js :
+
+- [Documentation Next.js](https://nextjs.org/docs) - découvrez les fonctionnalités de Next.js
+- [Apprendre Next.js](https://nextjs.org/learn-pages-router) - tutoriel interactif Next.js
